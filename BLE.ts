@@ -93,6 +93,7 @@ function BLE(): BLEInterface {
       bleManager.stopDeviceScan();
     } catch (error) {
       console.error("Connection Failed", error);
+      throw error; // Throw the error to propagate it back to the caller
     }
   };
 

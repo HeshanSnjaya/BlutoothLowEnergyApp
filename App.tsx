@@ -18,6 +18,7 @@ const App = () => {
     activeDevice,
   } = BLE();
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
+  const [connectionStatus, setConnectionStatus] = useState<string>("");
 
   const initiateDeviceScan = async () => {
     const hasPermissions = await requestPermissions();
@@ -35,6 +36,19 @@ const App = () => {
     setModalVisible(true);
   };
 
+  const handleDeviceConnection = async (device: any) => {
+    try {
+      // Connect to the device
+      await connectToDevice(device);
+      setConnectionStatus(
+        `Device Connected: ${device.name || "Unknown Device"}`
+      );
+    } catch (error) {
+      console.error("Connection Failed", error);
+      setConnectionStatus("Device connection failed");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -46,10 +60,17 @@ const App = () => {
       >
         <Text style={styles.actionButtonText}>{"Connect"}</Text>
       </TouchableOpacity>
+
+      {connectionStatus ? (
+        <View style={styles.connectionStatus}>
+          <Text style={styles.connectionStatusText}>{connectionStatus}</Text>
+        </View>
+      ) : null}
+
       <DeviceModal
         closeModal={closeDeviceModal}
         visible={isModalVisible}
-        connectToPeripheral={connectToDevice}
+        connectToPeripheral={handleDeviceConnection} // Pass the real connection function
         devices={availableDevices}
       />
     </SafeAreaView>
@@ -86,6 +107,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "white",
+  },
+  connectionStatus: {
+    marginTop: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  connectionStatusText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "green",
   },
 });
 
