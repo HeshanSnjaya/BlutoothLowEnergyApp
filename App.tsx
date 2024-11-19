@@ -9,6 +9,7 @@ import {
 import DeviceModal from "./DeviceConnectionModel";
 import BLE from "./BLE";
 
+// Main app component to handle Bluetooth device connection and disconnection
 const App = () => {
   const {
     requestPermissions,
@@ -18,25 +19,30 @@ const App = () => {
     activeDevice,
     disconnectFromDevice,
   } = BLE();
-  const [isModalVisible, setModalVisible] = useState<boolean>(false);
-  const [connectionStatus, setConnectionStatus] = useState<string>("");
 
+  const [isModalVisible, setModalVisible] = useState<boolean>(false); // State for modal visibility
+  const [connectionStatus, setConnectionStatus] = useState<string>(""); // State for displaying connection status
+
+  // Initiate device scan after confirming necessary permissions
   const initiateDeviceScan = async () => {
     const hasPermissions = await requestPermissions();
     if (hasPermissions) {
-      startDeviceScan();
+      startDeviceScan(); // Start scanning if permissions are granted
     }
   };
 
+  // Close the device modal
   const closeDeviceModal = () => {
     setModalVisible(false);
   };
 
+  // Show the device modal and initiate scan
   const showDeviceModal = async () => {
     await initiateDeviceScan();
     setModalVisible(true);
   };
 
+  // Handle device connection and update connection status
   const handleDeviceConnection = async (device: any) => {
     try {
       await connectToDevice(device);
@@ -49,6 +55,7 @@ const App = () => {
     }
   };
 
+  // Handle device disconnection and update status
   const handleDisconnect = async () => {
     try {
       await disconnectFromDevice();
@@ -64,39 +71,31 @@ const App = () => {
       <View style={styles.header}>
         <Text style={styles.headerText}>Connect to Bluetooth Devices</Text>
       </View>
-      {!activeDevice ? (
-        <TouchableOpacity
-          onPress={showDeviceModal}
-          style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
-        >
-          <Text style={styles.actionButtonText}>{"Connect"}</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.connectedDevice}>
-          <Text style={styles.connectionStatusText}>
-            Connected to: {activeDevice.name || "Unknown Device"}
-          </Text>
-          <TouchableOpacity
-            onPress={handleDisconnect}
-            style={[styles.actionButton, { backgroundColor: "#FF6060" }]}
-          >
-            <Text style={styles.actionButtonText}>{"Disconnect"}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
-      {connectionStatus ? (
-        <View style={styles.connectionStatus}>
-          <Text style={styles.connectionStatusText}>{connectionStatus}</Text>
-        </View>
-      ) : null}
+      {/* Display connection status */}
+      <Text style={styles.connectionStatus}>{connectionStatus}</Text>
 
+      {/* Show connect/disconnect buttons based on device connection state */}
+      <TouchableOpacity style={styles.button} onPress={showDeviceModal}>
+        <Text style={styles.buttonText}>Show Devices</Text>
+      </TouchableOpacity>
+
+      {/* DeviceModal to manage device selection */}
       <DeviceModal
-        closeModal={closeDeviceModal}
+        devices={availableDevices}
         visible={isModalVisible}
         connectToPeripheral={handleDeviceConnection}
-        devices={availableDevices}
+        closeModal={closeDeviceModal}
       />
+
+      {activeDevice && (
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: "red" }]}
+          onPress={handleDisconnect}
+        >
+          <Text style={styles.buttonText}>Disconnect</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -104,48 +103,30 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 20,
   },
   headerText: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
-    marginHorizontal: 20,
-    color: "black",
   },
-  actionButton: {
-    backgroundColor: "#FF6060",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 50,
-    marginHorizontal: 20,
-    marginBottom: 5,
+  button: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
     borderRadius: 8,
+    marginBottom: 20,
   },
-  actionButtonText: {
+  buttonText: {
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-    color: "white",
   },
   connectionStatus: {
-    marginTop: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  connectionStatusText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "green",
-  },
-  connectedDevice: {
-    marginHorizontal: 20,
+    fontSize: 16,
     marginBottom: 10,
-    alignItems: "center",
   },
 });
 
