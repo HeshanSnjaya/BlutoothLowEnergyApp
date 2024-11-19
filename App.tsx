@@ -16,6 +16,7 @@ const App = () => {
     availableDevices,
     connectToDevice,
     activeDevice,
+    disconnectFromDevice,
   } = BLE();
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<string>("");
@@ -38,7 +39,6 @@ const App = () => {
 
   const handleDeviceConnection = async (device: any) => {
     try {
-      // Connect to the device
       await connectToDevice(device);
       setConnectionStatus(
         `Device Connected: ${device.name || "Unknown Device"}`
@@ -49,17 +49,41 @@ const App = () => {
     }
   };
 
+  const handleDisconnect = async () => {
+    try {
+      await disconnectFromDevice();
+      setConnectionStatus("Device disconnected");
+    } catch (error) {
+      console.error("Disconnection Failed", error);
+      setConnectionStatus("Failed to disconnect the device");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Connect to Bluetooth Devices</Text>
       </View>
-      <TouchableOpacity
-        onPress={showDeviceModal}
-        style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
-      >
-        <Text style={styles.actionButtonText}>{"Connect"}</Text>
-      </TouchableOpacity>
+      {!activeDevice ? (
+        <TouchableOpacity
+          onPress={showDeviceModal}
+          style={[styles.actionButton, { backgroundColor: "#4CAF50" }]}
+        >
+          <Text style={styles.actionButtonText}>{"Connect"}</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.connectedDevice}>
+          <Text style={styles.connectionStatusText}>
+            Connected to: {activeDevice.name || "Unknown Device"}
+          </Text>
+          <TouchableOpacity
+            onPress={handleDisconnect}
+            style={[styles.actionButton, { backgroundColor: "#FF6060" }]}
+          >
+            <Text style={styles.actionButtonText}>{"Disconnect"}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {connectionStatus ? (
         <View style={styles.connectionStatus}>
@@ -70,7 +94,7 @@ const App = () => {
       <DeviceModal
         closeModal={closeDeviceModal}
         visible={isModalVisible}
-        connectToPeripheral={handleDeviceConnection} // Pass the real connection function
+        connectToPeripheral={handleDeviceConnection}
         devices={availableDevices}
       />
     </SafeAreaView>
@@ -117,6 +141,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "green",
+  },
+  connectedDevice: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    alignItems: "center",
   },
 });
 
